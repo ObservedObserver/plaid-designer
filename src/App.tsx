@@ -7,7 +7,7 @@ import { colorGrid2Segment } from './utils';
 import Designer from './designer/index';
 import { PageHeader, PageContainer } from './components/page';
 import { GSContext, useStore } from './store';
-import { Button, Menu, Row, Col, Select } from 'antd';
+import { Button, Menu, Row, Col, Select, Modal } from 'antd';
 import './App.css';
 import ColorScheme from './components/colorScheme';
 
@@ -17,6 +17,7 @@ function Core() {
 	const dllink = useRef<HTMLAnchorElement>(null);
 	const [gState, gStateUpdater] = useStore();
 	const [svgFile, setSvgFile] = useState<string>('');
+	const [preview, setPreview] = useState<boolean>(false);
 
 	const colorScheme = useMemo<string[]>(() => {
 		return gState.colorSchemePool[gState.colorSchemeIndex];
@@ -25,6 +26,7 @@ function Core() {
 	const segments = useMemo<ColorSegment[]>(() => {
         return colorGrid2Segment(gState.colorGrids, SIZE, colorScheme);
 	}, [gState.colorGrids, colorScheme]);
+
 	
 	const download = useCallback(() => {
 		if (svgContainer.current) {
@@ -40,6 +42,10 @@ function Core() {
 			state.colorSchemeIndex = index;
 		})
 	}, [gStateUpdater]);
+
+	const togglePreview = useCallback(() => {
+		setPreview(v => !v);
+	}, []);
 
 	useEffect(() => {
 		if (dllink.current && svgFile !== '') {
@@ -98,6 +104,7 @@ function Core() {
                             <Button type="primary" onClick={download}>
                                 下载svg文件
                             </Button>
+                            <Button style={{ marginLeft: '4px' }} onClick={togglePreview}>预览</Button>
                             <a
                                 style={{ display: 'none' }}
                                 download="skirt-plaid-pattern.svg"
@@ -117,25 +124,36 @@ function Core() {
                     </Col>
                 </Row>
             </PageContainer>
-            {/* <svg style={{ width: `${SIZE}px`, height: `${SIZE}px` }}>
-                <MaskLayer />
-                <g transform="scale(0.5, 0.5)">
-                    <HorizontalGroup segments={segments} />
-                    <VerticalGroup segments={segments} />
-                </g>
-                <g transform={`translate(0, ${SIZE / 2}) scale(0.5, 0.5)`}>
-                    <HorizontalGroup segments={segments} />
-                    <VerticalGroup segments={segments} />
-                </g>
-                <g transform={`translate(${SIZE / 2}, 0) scale(0.5, 0.5)`}>
-                    <HorizontalGroup segments={segments} />
-                    <VerticalGroup segments={segments} />
-                </g>
-                <g transform={`translate(${SIZE / 2}, ${SIZE / 2}) scale(0.5, 0.5)`}>
-                    <HorizontalGroup segments={segments} />
-                    <VerticalGroup segments={segments} />
-                </g>
-            </svg> */}
+            <Modal
+                title="预览"
+                visible={preview}
+                onOk={togglePreview}
+                onCancel={togglePreview}
+            >
+                <svg style={{ width: `${SIZE}px`, height: `${SIZE}px` }}>
+                    <MaskLayer width={SIZE} height={SIZE} pixSize={2} />
+                    <g transform="scale(0.5, 0.5)">
+                        <HorizontalGroup segments={segments} />
+                        <VerticalGroup segments={segments} />
+                    </g>
+                    <g transform={`translate(0, ${SIZE / 2}) scale(0.5, 0.5)`}>
+                        <HorizontalGroup segments={segments} />
+                        <VerticalGroup segments={segments} />
+                    </g>
+                    <g transform={`translate(${SIZE / 2}, 0) scale(0.5, 0.5)`}>
+                        <HorizontalGroup segments={segments} />
+                        <VerticalGroup segments={segments} />
+                    </g>
+                    <g
+                        transform={`translate(${SIZE / 2}, ${
+                            SIZE / 2
+                        }) scale(0.5, 0.5)`}
+                    >
+                        <HorizontalGroup segments={segments} />
+                        <VerticalGroup segments={segments} />
+                    </g>
+                </svg>
+            </Modal>
         </div>
     );
 }
