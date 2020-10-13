@@ -9,42 +9,50 @@ const COLOR_POOL: string[] = [
     '#3f3dd6',
     '#f5f1d2'
 ];
+
+const COLOR_POOL2: string[] = [
+    '#e63946',
+    '#f1faee',
+    '#a8dadc',
+    '#457b9d',
+    '#1d3557',
+];
 const colorGrids: ColorGrid[] = [
     {
         size: 12,
-        color: COLOR_POOL[0],
+        color: 0,
     },
     {
         size: 20,
-        color: COLOR_POOL[1],
+        color: 1,
     },
     {
         size: 20,
-        color: COLOR_POOL[2],
+        color: 2,
     },
     {
         size: 10,
-        color: COLOR_POOL[4],
+        color: 4,
     },
     {
         size: 5,
-        color: COLOR_POOL[2],
+        color: 2,
     },
     {
         size: 15,
-        color: COLOR_POOL[1],
+        color: 1,
     },
     {
         size: 10,
-        color: COLOR_POOL[2],
+        color: 2,
     },
     {
         size: 5,
-        color: COLOR_POOL[3],
+        color: 3,
     },
     {
         size: 50,
-        color: COLOR_POOL[4],
+        color: 4,
     },
 ];
 interface IGS {
@@ -53,7 +61,7 @@ interface IGS {
 }
 const initGlobalState: IGS = {
     colorGrids,
-    colorPool: COLOR_POOL,
+    colorPool: COLOR_POOL2,
 };
 export type IStateChange<T> = (state: T) => void;
 export type IUpdater = (update: IStateChange<IGS>) => void;

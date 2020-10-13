@@ -8,5 +8,5 @@ export interface ColorSegment {
 
 export interface ColorGrid {
     size: number;
-    color: string;
+    color: number;
 }
