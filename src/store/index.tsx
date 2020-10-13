@@ -58,10 +58,17 @@ const colorGrids: ColorGrid[] = [
 interface IGS {
     colorGrids: ColorGrid[];
     colorPool: string[];
+    colorSchemeIndex: number;
+    colorSchemePool: string[][];
 }
 const initGlobalState: IGS = {
     colorGrids,
     colorPool: COLOR_POOL2,
+    colorSchemeIndex: 0,
+    colorSchemePool: [
+        COLOR_POOL,
+        COLOR_POOL2
+    ]
 };
 export type IStateChange<T> = (state: T) => void;
 export type IUpdater = (update: IStateChange<IGS>) => void;

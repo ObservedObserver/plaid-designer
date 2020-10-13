@@ -1,8 +1,9 @@
-import { TextField, Select, MenuItem, Button, InputLabel } from '@material-ui/core';
-import React, { useCallback } from 'react';
+import { Input, Select, Button, InputNumber, Table } from 'antd';
+import React, { useCallback, useMemo } from 'react';
 import { ColorGrid } from '../interfaces';
 import { IUpdater } from '../store/index';
 import styled from 'styled-components';
+import { DeleteOutlined } from '@ant-design/icons';
 
 interface DesignerProps {
     colorGrids: ColorGrid[];
@@ -10,10 +11,11 @@ interface DesignerProps {
     updater: IUpdater;
 }
 
-const FieldContainer = styled.div`
-    padding: 4px;
-    display: flex;
-    align-items: center;
+const ColorBlock = styled.div<{color: string}>`
+    width: 14px;
+    height: 14px;
+    margin: 4px;
+    background-color: ${props => props.color};
 `;
 
 const Designer: React.FC<DesignerProps> = props => {
@@ -28,6 +30,11 @@ const Designer: React.FC<DesignerProps> = props => {
             state.colorGrids[index].color = Number(value);
         })
     }, [updater])
+    const deleteItem = useCallback((index: number) => {
+        updater(state => {
+            state.colorGrids.splice(index, 1);
+        })
+    }, [updater])
     const addItem = useCallback(() => {
         updater(state => {
             state.colorGrids.push({
@@ -36,45 +43,84 @@ const Designer: React.FC<DesignerProps> = props => {
             })
         })
     }, [updater])
-    return (
-        <div>
-            <div>
-                <Button variant="contained" color="primary" onClick={addItem}>
-                    Add
-                </Button>
-            </div>
-            <div>
-                {colorGrids.map((grid, index) => (
-                    <FieldContainer key={`color-grid-${index}`}>
-                        <TextField
-                            label="条纹大小"
+
+    const editGrids = useMemo(() => {
+        return colorGrids.map((c, i) => {
+            return {
+                ...c,
+                key: i
+            }
+        })
+    }, [colorGrids])
+
+    const tableCols = useMemo(() => {
+        return [
+            {
+                title: '大小',
+                dataIndex: 'size',
+                key: 'size',
+                width: 40,
+                render(value: any, grid: ColorGrid, index: number) {
+                    return (
+                        <InputNumber
+                            min={0}
+                            step={1}
                             value={grid.size}
                             onChange={(v) => {
-                                sizeHandler(Number(v.target.value), index);
+                                sizeHandler(Number(v), index);
                             }}
                         />
-                        {/* <InputLabel ></InputLabel> */}
+                    );
+                },
+            },
+            {
+                title: '颜色',
+                dataIndex: 'color',
+                key: 'color',
+                width: 30,
+                render (value: any, grid: ColorGrid, index: number) {
+                    return (
                         <Select
-                            label="颜色"
                             value={grid.color}
-                            onChange={(e) => {
-                                colorHandler(e.target.value as any, index);
+                            onChange={(v) => {
+                                colorHandler(v, index);
                             }}
                         >
                             {colorPool.map((c, i) => (
-                                <MenuItem key={c} value={i}>
-                                    <div
-                                        style={{
-                                            backgroundColor: c,
-                                            width: '18px',
-                                            height: '18px',
-                                        }}
-                                    ></div>
-                                </MenuItem>
+                                <Select.Option key={c} value={i}>
+                                    <ColorBlock color={c} />
+                                </Select.Option>
                             ))}
                         </Select>
-                    </FieldContainer>
-                ))}
+                    );
+                }
+            },
+            {
+                title: '编辑',
+                key: 'edit',
+                width: 30,
+                render (value: any, grid: ColorGrid, index: number) {
+                    return <DeleteOutlined onClick={() => { deleteItem(index) }} />;
+                }
+
+            }
+        ];
+    }, [colorHandler, sizeHandler, colorPool, deleteItem])
+    return (
+        <div>
+            <div style={{ marginBottom: '1em' }}>
+                <Button type="primary" onClick={addItem}>
+                    添加条纹
+                </Button>
+            </div>
+            <div>
+                <Table
+                    bordered
+                    size="small"
+                    dataSource={editGrids}
+                    columns={tableCols}
+                    scroll={{ y: 240 }}
+                />
             </div>
         </div>
     );
