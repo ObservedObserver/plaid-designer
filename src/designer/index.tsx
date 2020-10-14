@@ -115,11 +115,12 @@ const Designer: React.FC<DesignerProps> = props => {
             </div>
             <div>
                 <Table
+                    pagination={false}
                     bordered
                     size="small"
                     dataSource={editGrids}
                     columns={tableCols}
-                    scroll={{ y: 240 }}
+                    scroll={{ y: 550 }}
                 />
             </div>
         </div>

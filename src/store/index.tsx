@@ -1,5 +1,7 @@
 import produce from 'immer';
 import React, { useContext, useState, useCallback } from 'react';
+import { generateGrids } from '../bot/grid';
+import { sortColor } from '../bot/utils';
 import { ColorGrid } from '../interfaces';
 
 const COLOR_POOL: string[] = [
@@ -55,6 +57,30 @@ const colorGrids: ColorGrid[] = [
         color: 4,
     },
 ];
+const gridList = generateGrids(18);
+const sortedList = [...gridList].sort((a, b) => a - b);
+const orderMap: Map<number, number> = new Map();
+sortedList.forEach((n, i) => {
+    orderMap.set(n, i);
+})
+const minG = Math.min(...gridList);
+const maxG = Math.max(...gridList);
+// const colorGridsAutoD: ColorGrid[] = gridList.map((n, i) => ({
+//     size: n,
+//     color:
+//         i % 2
+//             ? Math.floor((1 - (n - minG) / (maxG - minG)) * 5) % 5
+//             : Math.floor((1 - (n - minG) / (maxG - minG)) * 4) % 4,
+// }));
+const colorGridsAutoD: ColorGrid[] = gridList.map((n, i) => ({
+    size: n,
+    color:
+        i % 2
+            ? Math.floor((1 - orderMap.get(n)! / orderMap.size) * 5) % 5
+            : Math.floor((1 - orderMap.get(n)! / orderMap.size) * 4) % 4,
+}));
+
+console.log(colorGridsAutoD);
 interface IGS {
     colorGrids: ColorGrid[];
     colorPool: string[];
@@ -62,10 +88,11 @@ interface IGS {
     colorSchemePool: string[][];
 }
 const initGlobalState: IGS = {
-    colorGrids,
+    colorGrids: colorGridsAutoD,
     colorPool: COLOR_POOL2,
     colorSchemeIndex: 0,
     colorSchemePool: [
+        sortColor(COLOR_POOL),
         COLOR_POOL,
         COLOR_POOL2
     ]
