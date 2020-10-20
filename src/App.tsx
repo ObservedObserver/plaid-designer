@@ -15,6 +15,7 @@ const SIZE = 400;
 function Core() {
 	const svgContainer = useRef<HTMLDivElement>(null);
 	const dllink = useRef<HTMLAnchorElement>(null);
+	const previewCanvas = useRef<HTMLCanvasElement>(null);
 	const [gState, gStateUpdater] = useStore();
 	const [svgFile, setSvgFile] = useState<string>('');
 	const [preview, setPreview] = useState<boolean>(false);
@@ -27,6 +28,30 @@ function Core() {
         return colorGrid2Segment(gState.colorGrids, SIZE, colorScheme);
 	}, [gState.colorGrids, colorScheme]);
 
+	const exportPNG = useCallback(() => {
+		// debugger
+        if (svgContainer.current) {
+            const content =
+                'data:image/svg+xml;base64,' +
+                btoa(svgContainer.current.innerHTML);
+            const img = new Image();
+			img.src = content;
+			img.width = SIZE;
+			img.height = SIZE;
+			img.onload = () => {
+				console.log('content', content);
+                if (previewCanvas.current) {
+                    const ctx = previewCanvas.current.getContext('2d');
+                    if (ctx) {
+						ctx.drawImage(img, 0, 0, SIZE / 2, SIZE / 2);
+						ctx.drawImage(img, 0, SIZE / 2, SIZE / 2, SIZE / 2);
+						ctx.drawImage(img, SIZE / 2, 0, SIZE / 2, SIZE / 2);
+						ctx.drawImage(img, SIZE / 2, SIZE / 2, SIZE / 2, SIZE / 2);
+                    }
+                }
+			}
+        }
+	}, []);
 	
 	const download = useCallback(() => {
 		if (svgContainer.current) {
@@ -41,10 +66,29 @@ function Core() {
 		gStateUpdater(state => {
 			state.colorSchemeIndex = index;
 		})
-	}, [gStateUpdater]);
+    }, [gStateUpdater]);
+    
+    // const generateGrid = useCallback(() => {
+    //     gStateUpdater(state => {
+    //         state.colorGrids = gridList.map((n, i) => ({
+    //             size: n,
+    //             color:
+    //                 Math.floor(
+    //                     (1 - orderMap.get(n)! / orderMap.size) * 5 +
+    //                         relu(Math.sin(((Math.PI * 2) / 4) * i)) +
+    //                         5
+    //                 ) % 5,
+    //         }));
+    //     })
+    // }, [])
 
 	const togglePreview = useCallback(() => {
-		setPreview(v => !v);
+		setPreview(v => {
+			if (!v) {
+				exportPNG();
+			}
+			return !v;
+		});
 	}, []);
 
 	useEffect(() => {
@@ -101,6 +145,7 @@ function Core() {
                             </svg>
                         </div>
                         <div>
+                            <Button>重新生成格纹</Button>
                             <Button type="primary" onClick={download}>
                                 下载svg文件
                             </Button>
@@ -130,7 +175,8 @@ function Core() {
                 onOk={togglePreview}
                 onCancel={togglePreview}
             >
-                <svg style={{ width: `${SIZE}px`, height: `${SIZE}px` }}>
+				<canvas width={SIZE} height={SIZE} ref={previewCanvas}></canvas>
+                {/* <svg style={{ width: `${SIZE}px`, height: `${SIZE}px` }}>
                     <MaskLayer width={SIZE} height={SIZE} pixSize={2} />
                     <g transform="scale(0.5, 0.5)">
                         <HorizontalGroup segments={segments} />
@@ -152,7 +198,7 @@ function Core() {
                         <HorizontalGroup segments={segments} />
                         <VerticalGroup segments={segments} />
                     </g>
-                </svg>
+                </svg> */}
             </Modal>
         </div>
     );

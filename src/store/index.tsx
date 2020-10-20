@@ -3,6 +3,8 @@ import React, { useContext, useState, useCallback } from 'react';
 import { generateGrids } from '../bot/grid';
 import { sortColor } from '../bot/utils';
 import { ColorGrid } from '../interfaces';
+import { ColorDB } from './colordb';
+import { gridFuncs } from '../bot/gridFuncs';
 
 const COLOR_POOL: string[] = [
     '#644e2d',
@@ -19,45 +21,8 @@ const COLOR_POOL2: string[] = [
     '#457b9d',
     '#1d3557',
 ];
-const colorGrids: ColorGrid[] = [
-    {
-        size: 12,
-        color: 0,
-    },
-    {
-        size: 20,
-        color: 1,
-    },
-    {
-        size: 20,
-        color: 2,
-    },
-    {
-        size: 10,
-        color: 4,
-    },
-    {
-        size: 5,
-        color: 2,
-    },
-    {
-        size: 15,
-        color: 1,
-    },
-    {
-        size: 10,
-        color: 2,
-    },
-    {
-        size: 5,
-        color: 3,
-    },
-    {
-        size: 50,
-        color: 4,
-    },
-];
-const gridList = generateGrids(18);
+
+const gridList = generateGrids(18, gridFuncs[0]);
 const sortedList = [...gridList].sort((a, b) => a - b);
 const orderMap: Map<number, number> = new Map();
 sortedList.forEach((n, i) => {
@@ -72,12 +37,19 @@ const maxG = Math.max(...gridList);
 //             ? Math.floor((1 - (n - minG) / (maxG - minG)) * 5) % 5
 //             : Math.floor((1 - (n - minG) / (maxG - minG)) * 4) % 4,
 // }));
+// const colorGridsAutoD: ColorGrid[] = gridList.map((n, i) => ({
+//     size: n,
+//     color:
+//         i % 2
+//             ? Math.floor((1 - orderMap.get(n)! / orderMap.size) * 5) % 5
+//             : Math.floor((1 - orderMap.get(n)! / orderMap.size) * 4) % 4,
+// }));
+
+const relu = (x: number) => Math.max(0, x)
+
 const colorGridsAutoD: ColorGrid[] = gridList.map((n, i) => ({
     size: n,
-    color:
-        i % 2
-            ? Math.floor((1 - orderMap.get(n)! / orderMap.size) * 5) % 5
-            : Math.floor((1 - orderMap.get(n)! / orderMap.size) * 4) % 4,
+    color: Math.floor((1 - orderMap.get(n)! / orderMap.size) * 5 + relu(Math.sin(Math.PI * 2 / 4 * i)) + 5) % 5
 }));
 
 console.log(colorGridsAutoD);
@@ -93,9 +65,11 @@ const initGlobalState: IGS = {
     colorSchemeIndex: 0,
     colorSchemePool: [
         sortColor(COLOR_POOL),
-        COLOR_POOL,
-        COLOR_POOL2
-    ]
+        sortColor(COLOR_POOL2),
+        ...ColorDB.map(cdb => sortColor(cdb)),
+        // COLOR_POOL,
+        // COLOR_POOL2,
+    ],
 };
 export type IStateChange<T> = (state: T) => void;
 export type IUpdater = (update: IStateChange<IGS>) => void;
