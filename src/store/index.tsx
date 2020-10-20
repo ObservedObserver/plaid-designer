@@ -53,7 +53,7 @@ const colorGridsAutoD: ColorGrid[] = gridList.map((n, i) => ({
 }));
 
 console.log(colorGridsAutoD);
-interface IGS {
+export interface IGS {
     colorGrids: ColorGrid[];
     colorPool: string[];
     colorSchemeIndex: number;

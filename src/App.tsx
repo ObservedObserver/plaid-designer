@@ -10,6 +10,7 @@ import { GSContext, useStore } from './store';
 import { Button, Menu, Row, Col, Select, Modal } from 'antd';
 import './App.css';
 import ColorScheme from './components/colorScheme';
+import InitPanel from './designer/init';
 
 const SIZE = 400;
 function Core() {
@@ -145,7 +146,9 @@ function Core() {
                             </svg>
                         </div>
                         <div>
-                            <Button>重新生成格纹</Button>
+                            <InitPanel onInit={gStateUpdater} />
+                        </div>
+                        <div>
                             <Button type="primary" onClick={download}>
                                 下载svg文件
                             </Button>
