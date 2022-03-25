@@ -2,32 +2,32 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import MaskLayer from './canvas/mask';
 import HorizontalGroup from './canvas/horizontal';
 import VerticalGroup from './canvas/vertical';
-import { ColorSegment } from './interfaces';
-import { colorGrid2Segment } from './utils';
 import Designer from './designer/index';
 import { PageHeader, PageContainer } from './components/page';
-import { GSContext, useStore } from './store';
-import { Button, Menu, Row, Col, Select, Modal } from 'antd';
+// import { GSContext, useStore } from './store';
+import { useGlobalStore, StoreWrapper } from './store/store'
+import { Button, Menu, Row, Col,  Modal } from 'antd';
 import './App.css';
-import ColorScheme from './components/colorScheme';
 import InitPanel from './designer/init';
+import { observer } from 'mobx-react-lite';
+import ColorPool from './components/colorPool';
+import ParseSegment from './components/parse';
 
 const SIZE = 400;
 function Core() {
 	const svgContainer = useRef<HTMLDivElement>(null);
 	const dllink = useRef<HTMLAnchorElement>(null);
 	const previewCanvas = useRef<HTMLCanvasElement>(null);
-	const [gState, gStateUpdater] = useStore();
+	// const [gState, gStateUpdater] = useStore();
+    const { commonStore } = useGlobalStore();
 	const [svgFile, setSvgFile] = useState<string>('');
 	const [preview, setPreview] = useState<boolean>(false);
 
-	const colorScheme = useMemo<string[]>(() => {
-		return gState.colorSchemePool[gState.colorSchemeIndex];
-	}, [gState.colorSchemeIndex, gState.colorSchemePool])
+	const { segments } = commonStore;
 
-	const segments = useMemo<ColorSegment[]>(() => {
-        return colorGrid2Segment(gState.colorGrids, SIZE, colorScheme);
-	}, [gState.colorGrids, colorScheme]);
+	// const segments = useMemo<ColorSegment[]>(() => {
+    //     return colorGrid2Segment(gState.colorGrids, SIZE, colorScheme);
+	// }, [gState.colorGrids, colorScheme]);
 
 	const exportPNG = useCallback(() => {
 		// debugger
@@ -63,11 +63,6 @@ function Core() {
 		}
 	}, [])
 
-	const changeTheme = useCallback((index: number) => {
-		gStateUpdater(state => {
-			state.colorSchemeIndex = index;
-		})
-    }, [gStateUpdater]);
     
     // const generateGrid = useCallback(() => {
     //     gStateUpdater(state => {
@@ -102,29 +97,13 @@ function Core() {
         <div className="App">
             <PageHeader>
                 <Menu>
-                    <Menu.Item>JK Designer</Menu.Item>
+                    <Menu.Item>Plaid Designer</Menu.Item>
                 </Menu>
             </PageHeader>
             <PageContainer>
                 <Row>
                     <Col span={16}>
-                        <div style={{ marginBottom: '1em' }}>
-                            <Select
-                                value={gState.colorSchemeIndex}
-                                onChange={changeTheme}
-                            >
-                                {gState.colorSchemePool.map(
-                                    (scheme, sIndex) => (
-                                        <Select.Option
-                                            key={sIndex}
-                                            value={sIndex}
-                                        >
-                                            <ColorScheme colorPool={scheme} />
-                                        </Select.Option>
-                                    )
-                                )}
-                            </Select>
-                        </div>
+                        <ColorPool />
                         <div ref={svgContainer}>
                             <svg
                                 version="1.1"
@@ -146,7 +125,7 @@ function Core() {
                             </svg>
                         </div>
                         <div>
-                            <InitPanel onInit={gStateUpdater} />
+                            <InitPanel />
                         </div>
                         <div>
                             <Button type="primary" onClick={download}>
@@ -162,13 +141,12 @@ function Core() {
                                 download
                             </a>
                         </div>
+                        <div>
+                        <ParseSegment />
+                        </div>
                     </Col>
                     <Col span={8}>
-                        <Designer
-                            colorGrids={gState.colorGrids}
-                            colorPool={colorScheme}
-                            updater={gStateUpdater}
-                        />
+                        <Designer />
                     </Col>
                 </Row>
             </PageContainer>
@@ -206,11 +184,13 @@ function Core() {
         </div>
     );
 }
+
+const ObCore = observer(Core);
 function App() {
     return (
-        <GSContext>
-            <Core />
-        </GSContext>
+        <StoreWrapper>
+            <ObCore />
+        </StoreWrapper>
     );
 }
 

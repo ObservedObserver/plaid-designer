@@ -1,14 +1,16 @@
-import { Input, Select, Button, InputNumber, Table } from 'antd';
+import { Select, Button, InputNumber, Table } from 'antd';
 import React, { useCallback, useMemo } from 'react';
 import { ColorGrid } from '../interfaces';
-import { IUpdater } from '../store/index';
 import styled from 'styled-components';
 import { DeleteOutlined } from '@ant-design/icons';
+import { observer } from 'mobx-react-lite';
+import { useGlobalStore } from '../store/store';
+import { toJS } from 'mobx';
 
 interface DesignerProps {
-    colorGrids: ColorGrid[];
-    colorPool: string[];
-    updater: IUpdater;
+    // colorGrids: ColorGrid[];
+    // colorPool: string[];
+    // updater: IUpdater;
 }
 
 const ColorBlock = styled.div<{color: string}>`
@@ -19,39 +21,28 @@ const ColorBlock = styled.div<{color: string}>`
 `;
 
 const Designer: React.FC<DesignerProps> = props => {
-    const { colorGrids, colorPool, updater } = props;
+    const { commonStore } = useGlobalStore();
+    // const { colorGrids, colorPool, updater } = props;
+    const { colorGrids, colorScheme } = commonStore;
     const sizeHandler = useCallback((value: number, index: number) => {
-        updater(state => {
-            state.colorGrids[index].size = value
-        })
-    }, [updater]);
+        commonStore.setGridSize(value, index)
+    }, [commonStore]);
     const colorHandler = useCallback((value: number, index: number) => {
-        updater(state => {
-            state.colorGrids[index].color = Number(value);
-        })
-    }, [updater])
+        commonStore.setGridColor(value, index)
+    }, [commonStore])
     const deleteItem = useCallback((index: number) => {
-        updater(state => {
-            state.colorGrids.splice(index, 1);
-        })
-    }, [updater])
+        commonStore.deleteGrid(index)
+    }, [commonStore])
     const addItem = useCallback(() => {
-        updater(state => {
-            state.colorGrids.push({
-                size: Math.round(Math.random() * 40) + 10,
-                color: Math.round(Math.random() * state.colorPool.length - 1) 
-            })
-        })
-    }, [updater])
+        commonStore.addGrid();
+    }, [commonStore])
 
-    const editGrids = useMemo(() => {
-        return colorGrids.map((c, i) => {
-            return {
-                ...c,
-                key: i
-            }
-        })
-    }, [colorGrids])
+    const editGrids = toJS(colorGrids).map((c, i) => {
+        return {
+            ...c,
+            key: i
+        }
+    })
 
     const tableCols = useMemo(() => {
         return [
@@ -86,7 +77,7 @@ const Designer: React.FC<DesignerProps> = props => {
                                 colorHandler(v, index);
                             }}
                         >
-                            {colorPool.map((c, i) => (
+                            {colorScheme.map((c, i) => (
                                 <Select.Option key={c} value={i}>
                                     <ColorBlock color={c} />
                                 </Select.Option>
@@ -105,7 +96,7 @@ const Designer: React.FC<DesignerProps> = props => {
 
             }
         ];
-    }, [colorHandler, sizeHandler, colorPool, deleteItem])
+    }, [colorHandler, sizeHandler, colorScheme, deleteItem])
     return (
         <div>
             <div style={{ marginBottom: '1em' }}>
@@ -127,4 +118,4 @@ const Designer: React.FC<DesignerProps> = props => {
     );
 }
 
-export default Designer;
+export default observer(Designer);
